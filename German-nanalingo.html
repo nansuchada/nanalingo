@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grimm's Forest Path: คอร์สภาษาเยอรมันธีมป่าดำ 🌲</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #121824;
+            --card-dark: #1E293B;
+            --text-light: #F1F5F9;
+            --accent-gold: #F59E0B;
+        }
+
+        body { 
+            margin: 0; 
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 10% 20%, #1E3A8A 0%, transparent 45%),
+                              radial-gradient(circle at 90% 80%, #064E3B 0%, transparent 45%);
+            background-attachment: fixed;
+            font-family: 'Chakra Petch', sans-serif;
+            color: var(--text-light);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        button, input, select, textarea {
+            font-family: 'Chakra Petch', sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const categories = [
+          {
+            id: "greetings",
+            name: "บทนำและการทักทาย",
+            desc: "พื้นฐานการทักทายและคำสุภาพ",
+            emoji: "📖",
+            color: "#1E2640",
+            textColor: "#93C5FD",  
+            borderColor: "#3B82F6",
+            unlocked: true,
+            phrases: [
+              { de: "Hallo.", en: "สวัสดี", pinyin: "ฮัล-โล", thHint: "Hallo" },
+              { de: "Danke.", en: "ขอบคุณ", pinyin: "ดัน-เคอะ", thHint: "Danke" },
+              { de: "Bitte.", en: "ไม่เป็นไร / ยินดี / เชิญ", pinyin: "บิท-เทอะ", thHint: "Bitte" },
+              { de: "Tschüss!", en: "ลาก่อน", pinyin: "ชวืส", thHint: "Tschüss" },
+              { de: "Entschuldigung.", en: "ขอโทษ / ขออภัย", pinyin: "เอ็นท์-ชุล-ดิ-กุง", thHint: "Entschuldigung" }
+            ],
+          },
+          {
+            id: "introductions",
+            name: "การแนะนำตัว",
+            desc: "สร้างมิตรภาพและทำความรู้จัก",
+            emoji: "🌳",
+            color: "#142824",
+            textColor: "#6EE7B7",  
+            borderColor: "#10B981",
+            unlocked: true,
+            phrases: [
+              { de: "Ich heiße…", en: "ฉันชื่อ...", pinyin: "อิช ไฮ-เซอะ ...", thHint: "Ich heiße..." },
+              { de: "Wie heißen Sie?", en: "คุณชื่ออะไร?", pinyin: "วี ไฮ-เซิน ซี?", thHint: "Wie heißen Sie?" },
+              { de: "Woher kommen Sie?", en: "คุณมาจากไหน?", pinyin: "โว-แฮร์ คอม-เมิน ซี?", thHint: "Woher kommen Sie?" },
+              { de: "Ich komme aus Thailand.", en: "ฉันมาจากประเทศไทย", pinyin: "อิช คอม-เมอะ เอาส์ ไท-ลันด์", thHint: "Ich komme aus Thailand." },
+              { de: "Freut mich.", en: "ยินดีที่ได้รู้จัก", pinyin: "ฟรอยท์ มิช", thHint: "Freut mich" }
+            ],
+          },
+          {
+            id: "food",
+            name: "อาหารและเครื่องดื่ม",
+            desc: "การสั่งอาหารในร้านและการเช็คบิล",
+            emoji: "🍪",
+            color: "#2D1B36",
+            textColor: "#D8B4FE",  
+            borderColor: "#A855F7",
+            unlocked: false,
+            starsNeeded: 5,
+            phrases: [
+              { de: "Ich möchte das, bitte.", en: "ฉันขออันนี้ครับ/ค่ะ", pinyin: "อิช เมิช-เทอะ ดัส, บิท-เทอะ", thHint: "Ich möchte das, bitte." },
+              { de: "Es ist lecker!", en: "อร่อยมาก!", pinyin: "เอส อิสท์ เล็ค-เคอร์!", thHint: "Es ist lecker!" },
+              { de: "Die Rechnung, bitte.", en: "เก็บเงินด้วยครับ/ค่ะ", pinyin: "ดี เรช-นุง, บิท-เทอะ", thHint: "Die Rechnung, bitte." },
+              { de: "Wasser, bitte.", en: "ขอน้ำเปล่าครับ/ค่ะ", pinyin: "วาส-เซิร์ร, บิท-เทอะ", thHint: "Wasser, bitte." },
+              { de: "Die Speisekarte, bitte.", en: "ขอเมนูอาหารครับ/ค่ะ", pinyin: "ดี ชไป-เซอะ-คาร์-เทอะ, บิท-เทอะ", thHint: "Die Speisekarte, bitte." }
+            ],
+          },
+          {
+            id: "shopping",
+            name: "การซื้อของและต่อราคา",
+            desc: "ถามราคาและการชำระเงิน",
+            emoji: "💎",
+            color: "#2D2516",
+            textColor: "#FDE047",  
+            borderColor: "#EAB308",
+            unlocked: false,
+            starsNeeded: 10,
+            phrases: [
+              { de: "Wie viel kostet das?", en: "ราคาเท่าไหร่?", pinyin: "วี ฟีล คอส-เท็ท ดัส?", thHint: "Wie viel kostet das?" },
+              { de: "Das ist teuer!", en: "แพงจัง!", pinyin: "ดัส อิสท์ ทอย-เออร์!", thHint: "Das ist teuer!" },
+              { de: "Ich kaufe das.", en: "ฉันซื้ออันนี้", pinyin: "อิช เคา-เฟอะ ดัส", thHint: "Ich kaufe das." },
+              { de: "Ein Rabatt, bitte?", en: "ลดราคาหน่อยได้ไหม?", pinyin: "ไอน์ รา-บัต, บิท-เทอะ?", thHint: "Ein Rabatt, bitte?" },
+              { de: "Kann ich mit Karte bezahlen?", en: "จ่ายด้วยบัตรเครดิตได้ไหม?", pinyin: "คัน อิช มิท คาร์-เทอะ เบะ-ซาล-เลิน?", thHint: "Kann ich mit Karte bezahlen?" }
+            ],
+          },
+          {
+            id: "directions",
+            name: "การถามทิศทาง",
+            desc: "การค้นหาสถานที่และเส้นทาง",
+            emoji: "🌲",
+            color: "#1E293B",
+            textColor: "#CBD5E1",  
+            borderColor: "#64748B",
+            unlocked: false,
+            starsNeeded: 15,
+            phrases: [
+              { de: "Wo ist die Toilette?", en: "ห้องน้ำอยู่ไหน?", pinyin: "โว อิสท์ ดี ทอย-เล็ท-เทอะ?", thHint: "Wo ist die Toilette?" },
+              { de: "Gehen Sie geradeaus.", en: "กรุณาเดินตรงไป", pinyin: "เก-เอน ซี เกะ-รา-เดะ-เอาส์", thHint: "Gehen Sie geradeaus." },
+              { de: "Ich habe mich verlaufen.", en: "ฉันหลงทางแล้ว", pinyin: "อิช ฮา-เบอะ มิช แฟร์-เลา-เฟิน", thHint: "Ich habe mich verlaufen." },
+              { de: "Wo ist der Bahnhof?", en: "สถานีรถไฟอยู่ไหน?", pinyin: "โว อิสท์ แดร์ บาน-โฮฟ?", thHint: "Wo ist der Bahnhof?" },
+              { de: "Biegen Sie links ab.", en: "กรุณาเลี้ยวซ้าย", pinyin: "บี-เกิน ซี ลิงก์ส อัพ", thHint: "Biegen Sie links ab." }
+            ],
+          },
+          {
+            id: "emergency",
+            name: "เหตุฉุกเฉิน",
+            desc: "การขอความช่วยเหลือเร่งด่วน",
+            emoji: "🐺",
+            color: "#311818",
+            textColor: "#FCA5A5",  
+            borderColor: "#EF4444",
+            unlocked: false,
+            starsNeeded: 20,
+            phrases: [
+              { de: "Hilfe!", en: "ช่วยด้วย!", pinyin: "ฮิล-เฟอะ!", thHint: "Hilfe!" },
+              { de: "Ich verstehe nicht.", en: "ฉันไม่เข้าใจ", pinyin: "อิช แฟร์-ชเต-เฮอะ นิชท์", thHint: "Ich verstehe nicht." },
+              { de: "Sprechen Sie Englisch?", en: "คุณพูดภาษาอังกฤษได้ไหม?", pinyin: "ชพแร็ค-เคิน ซี เอ็ง-ลิช?", thHint: "Sprechen Sie Englisch?" },
+              { de: "Wiederholen Sie, bitte.", en: "กรุณาพูดอีกครั้ง", pinyin: "วี-เดอร์-โฮ-เลิน ซี, บิท-เทอะ", thHint: "Wiederholen Sie, bitte." },
+              { de: "Alles gut?", en: "เป็นอะไรไหม / เรียบร้อยดีไหม?", pinyin: "อัล-เลส กท?", thHint: "Alles gut?" }
+            ],
+          },
+        ];
+
+        const speakGerman = (text) => {
+          if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const cleanText = text.replace(/[.!?。！？…]/g, "");
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'de-DE';
+            utterance.rate = 0.80; 
+            window.speechSynthesis.speak(utterance);
+          }
+        };
+
+        function Confetti({ show }) {
+          if (!show) return null;
+          const pieces = Array.from({ length: 30 }, (_, i) => ({
+            id: i,
+            left: Math.random() * 100,
+            delay: Math.random() * 0.4,
+            size: Math.random() * 8 + 4,
+            color: ["#F59E0B", "#10B981", "#3B82F6", "#A855F7", "#EF4444"][i % 5]
+          }));
+          return (
+            <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 999 }}>
+              {pieces.map(p => (
+                <div key={p.id} style={{
+                  position: "absolute", left: `${p.left}%`, top: "-20px",
+                  width: p.size, height: p.size, borderRadius: "50%", background: p.color,
+                  boxShadow: `0 0 6px ${p.color}AA`,
+                  animation: `fall 1.4s ${p.delay}s linear forwards`,
+                }} />
+              ))}
+              <style>{`@keyframes fall { to { transform: translateY(110vh); opacity: 0; } }`}</style>
+            </div>
+          );
+        }
+
+        function StarDisplay({ count }) {
+          return (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, background: "#1E293B", border: "2px solid #334155", borderRadius: "30px", padding: "8px 20px", boxShadow: "0 4px 15px rgba(0,0,0,0.3)" }}>
+              <span style={{ fontSize: 20 }}>💧</span>
+              <span style={{ fontWeight: 700, fontSize: 16, color: "#E2E8F0", letterSpacing: 0.5 }}>แต้มดวงจิต: {count}</span>
+            </div>
+          );
+        }
+
+        function CategoryCard({ cat, stars, onSelect }) {
+          const unlocked = cat.unlocked || stars >= (cat.starsNeeded || 0);
+          return (
+            <div onClick={() => unlocked && onSelect(cat)} style={{
+              background: unlocked ? cat.color : "#0F172A",
+              borderRadius: "28px", padding: "24px 16px", cursor: unlocked ? "pointer" : "not-allowed",
+              textAlign: "center", border: `3px solid ${unlocked ? cat.borderColor : "#1E293B"}`,
+              transition: "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+              position: "relative",
+              boxShadow: unlocked ? "0 8px 25px rgba(0,0,0,0.4)" : "none",
+              opacity: unlocked ? 1 : 0.4,
+            }}
+            onMouseEnter={e => unlocked && (e.currentTarget.style.transform = "translateY(-6px)", e.currentTarget.style.boxShadow = `0 12px 30px ${cat.borderColor}66`)}
+            onMouseLeave={e => (e.currentTarget.style.transform = "none", e.currentTarget.style.boxShadow = "0 8px 25px rgba(0,0,0,0.4)")}
+            >
+              <div style={{ fontSize: 40, marginBottom: 12 }}>{unlocked ? cat.emoji : "🔒"}</div>
+              <div style={{ fontWeight: 800, fontSize: 17, color: unlocked ? cat.textColor : "#475569" }}>{cat.name}</div>
+              <div style={{ fontSize: 13, color: unlocked ? cat.textColor : "#475569", opacity: 0.8, marginTop: 4, fontWeight: 500 }}>{unlocked ? cat.desc : `ต้องการแต้มดวงจิต ${cat.starsNeeded} 💧`}</div>
+            </div>
+          );
+        }
+
+        function PhraseCard({ phrase, onCorrect, onNext, flipped, setFlipped, showHint, setShowHint }) {
+          return (
+            <div style={{ textAlign: "center" }}>
+              <div onClick={() => setFlipped(!flipped)} style={{
+                background: flipped ? "#1E1B4B" : "#1E293B",
+                border: `3px solid ${flipped ? "#6366F1" : "#F59E0B"}`,
+                borderRadius: "35px", padding: "50px 20px", cursor: "pointer",
+                minHeight: 200, display: "flex", flexDirection: "column",
+                alignItems: "center", justifyContent: "center",
+                transition: "all 0.3s ease",
+                boxShadow: "0 15px 35px rgba(0,0,0,0.5)",
+              }}>
+                <div style={{ fontSize: 13, color: "#64748B", marginBottom: 16, letterSpacing: 2, fontWeight: 700, textTransform: "uppercase" }}>
+                  {flipped ? "คำแปลภาษาไทย" : "ภาษาเยอรมัน"}
+                </div>
+                <div style={{ fontSize: 34, fontWeight: 800, color: flipped ? "#A5B4FC" : "#F8FAFC", lineHeight: 1.4 }}>
+                  {flipped ? phrase.en : phrase.de}
+                </div>
+                
+                {!flipped && showHint && (
+                  <div style={{ marginTop: 20, background: "#0F172A", padding: "14px 24px", borderRadius: "24px", border: "2px dashed #475569" }}>
+                    <div style={{ fontSize: 24, color: "#F59E0B", fontWeight: 700, letterSpacing: 0.5 }}>
+                      {phrase.pinyin}
+                    </div>
+                    <div style={{ fontSize: 15, color: "#94A3B8", fontWeight: 600, marginTop: 6 }}>
+                      ({phrase.thHint})
+                    </div>
+                  </div>
+                )}
+                
+                {!flipped && (
+                  <div style={{ marginTop: 28, fontSize: 13, color: "#475569", fontWeight: 500 }}>คลิกที่การ์ดเพื่อดูคำแปล</div>
+                )}
+              </div>
+
+              <div style={{ marginTop: 22, display: "flex", gap: 12, justifyContent: "center" }}>
+                {!flipped && (
+                  <button onClick={(e) => { e.stopPropagation(); setShowHint(!showHint); }} style={{
+                    background: "#1E293B", border: "2px solid #475569", borderRadius: "20px",
+                    padding: "10px 24px", cursor: "pointer", fontSize: 14, color: "#94A3B8", fontWeight: 700, transition: "all 0.2s"
+                  }}>
+                    {showHint ? "ซ่อนคำอ่าน" : "📜 แสดงคำอ่าน"}
+                  </button>
+                )}
+                
+                {!flipped && (
+                  <button onClick={(e) => { e.stopPropagation(); speakGerman(phrase.de); }} style={{
+                    background: "#1E3A8A", border: "2px solid #3B82F6", borderRadius: "20px",
+                    padding: "10px 24px", cursor: "pointer", fontSize: 14, color: "#93C5FD", fontWeight: 700, transition: "all 0.2s"
+                  }}>
+                    📢 ฟังออกเสียง
+                  </button>
+                )}
+              </div>
+
+              {flipped && (
+                <div style={{ marginTop: 28, display: "flex", gap: 16, justifyContent: "center" }}>
+                  <button onClick={onNext} style={{
+                    background: "#334155", border: "none", borderRadius: "22px",
+                    padding: "14px 32px", cursor: "pointer", fontSize: 15, color: "#94A3B8", fontWeight: 700,
+                  }}>ข้าม</button>
+                  <button onClick={onCorrect} style={{
+                    background: "#F59E0B", border: "none", borderRadius: "22px",
+                    padding: "14px 32px", cursor: "pointer", fontSize: 15, color: "#1E1B4B", fontWeight: 700,
+                    boxShadow: "0 6px 15px rgba(245,158,11,0.4)"
+                  }}>💧 จำได้แล้ว!</button>
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        function QuizMode({ cat, onBack, onEarnStar }) {
+          const [idx, setIdx] = useState(() => Math.floor(Math.random() * cat.phrases.length));
+          const [choices, setChoices] = useState([]);
+          const [selected, setSelected] = useState(null);
+          const [showConfetti, setShowConfetti] = useState(false);
+          const [mode, setMode] = useState("learn");
+          
+          const [flipped, setFlipped] = useState(false);
+          const [showHint, setShowHint] = useState(false);
+
+          const phrase = cat.phrases[idx];
+
+          const makeChoices = (currentIdx) => {
+            const correct = cat.phrases[currentIdx];
+            const others = cat.phrases.filter((_, i) => i !== currentIdx);
+            const shuffled = others.sort(() => Math.random() - 0.5).slice(0, 3);
+            return [...shuffled, correct].sort(() => Math.random() - 0.5);
+          };
+
+          useEffect(() => {
+            setChoices(makeChoices(idx));
+            setSelected(null);
+          }, [idx]);
+
+          const nextPhrase = () => {
+            const next = (idx + 1) % cat.phrases.length;
+            setIdx(next);
+            setSelected(null);
+            setShowConfetti(false);
+            setFlipped(false);
+            setShowHint(false);   
+          };
+
+          const handleCorrectLearn = () => {
+            onEarnStar();
+            setShowConfetti(true);
+            setTimeout(() => {
+              setShowConfetti(false);
+              nextPhrase();
+            }, 600); 
+          };
+
+          const handleChoice = (choice) => {
+            if (selected) return;
+            setSelected(choice);
+            if (choice.de === phrase.de) {
+              setShowConfetti(true);
+              onEarnStar();
+              setTimeout(() => setShowConfetti(false), 1500);
+            }
+          };
+
+          return (
+            <div>
+              <Confetti show={showConfetti} />
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 28 }}>
+                <button onClick={onBack} style={{ background: "#1E293B", border: "2px solid #475569", borderRadius: "20px", padding: "8px 18px", cursor: "pointer", fontSize: 13, color: "#94A3B8", fontWeight: 700 }}>
+                  ← ย้อนกลับ
+                </button>
+                <div style={{ fontWeight: 800, fontSize: 16, color: cat.textColor }}>{cat.emoji} {cat.name}</div>
+                <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+                  <button onClick={() => setMode("learn")} style={{ background: mode === "learn" ? "#F59E0B" : "#1E293B", border: "2px solid #475569", borderRadius: "20px", padding: "8px 16px", cursor: "pointer", fontSize: 12, color: mode === "learn" ? "#1E1B4B" : "#94A3B8", fontWeight: 700 }}>เรียนรู้</button>
+                  <button onClick={() => setMode("quiz")} style={{ background: mode === "quiz" ? "#F59E0B" : "#1E293B", border: "2px solid #475569", borderRadius: "20px", padding: "8px 16px", cursor: "pointer", fontSize: 12, color: mode === "quiz" ? "#1E1B4B" : "#94A3B8", fontWeight: 700 }}>ทดสอบ</button>
+                </div>
+              </div>
+
+              {mode === "learn" ? (
+                <PhraseCard 
+                  phrase={phrase} 
+                  onCorrect={handleCorrectLearn} 
+                  onNext={nextPhrase} 
+                  flipped={flipped}
+                  setFlipped={setFlipped}
+                  showHint={showHint}
+                  setShowHint={setShowHint}
+                />
+              ) : (
+                <div>
+                  <div style={{ background: "#1E293B", border: "2px solid #334155", borderRadius: "30px", padding: "45px 20px", textAlign: "center", marginBottom: 24, boxShadow: "0 10px 25px rgba(0,0,0,0.3)" }}>
+                    <div style={{ fontSize: 13, color: "#64748B", marginBottom: 14, letterSpacing: 1, fontWeight: 700, textTransform: "uppercase" }}>เลือกคำศัพท์ที่ถูกต้อง</div>
+                    <div style={{ fontSize: 26, fontWeight: 800, color: "#F8FAFC" }}>{phrase.en}</div>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                    {choices.map((c, i) => {
+                      let bg = "#1E293B", border = "2px solid #334155", color = "#94A3B8";
+                      if (selected) {
+                        if (c.de === phrase.de) { bg = "#064E3B"; border = "3px solid #10B981"; color = "#6EE7B7"; }
+                        else if (c.de === selected.de) { bg = "#7F1D1D"; border = "3px solid #EF4444"; color = "#FCA5A5"; }
+                      }
+                      return (
+                        <button key={i} onClick={() => handleChoice(c)} style={{
+                          background: bg, border, borderRadius: "20px", padding: "18px 10px",
+                          cursor: selected ? "default" : "pointer", fontSize: 18, color, fontWeight: 800,
+                          transition: "all 0.2s", textAlign: "center", boxShadow: "0 4px 10px rgba(0,0,0,0.2)"
+                        }}>
+                          {c.de}
+                          {selected && <span onClick={(e) => { e.stopPropagation(); speakGerman(c.de); }} style={{ position: "absolute", right: 8, bottom: 6, fontSize: 14, cursor: "pointer" }}>🔊</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {selected && (
+                    <div style={{ textAlign: "center", marginTop: 30 }}>
+                      {selected.de === phrase.de
+                        ? <div style={{ color: "#10B981", fontWeight: 800, fontSize: 18, marginBottom: 16 }}>ถูกต้องแล้วครับ! (+1 💧)</div>
+                        : <div style={{ color: "#EF4444", fontWeight: 800, fontSize: 18, marginBottom: 16 }}>ยังไม่ถูกครับ พยายามใหม่นะ!</div>
+                      }
+                      <button onClick={nextPhrase} style={{ background: "#F59E0B", border: "none", borderRadius: "22px", padding: "14px 40px", cursor: "pointer", fontSize: 15, color: "#1E1B4B", fontWeight: 700, boxShadow: "0 6px 20px rgba(245,158,11,0.4)" }}>
+                        ถัดไป →
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        function App() {
+          const [stars, setStars] = useState(0);
+          const [selected, setSelected] = useState(null);
+
+          const earnStar = () => {
+            setStars(s => s + 1);
+          };
+
+          const totalUnlocked = categories.filter(c => c.unlocked || stars >= (c.starsNeeded || 0)).length;
+
+          return (
+            <div style={{ maxWidth: 520, margin: "0 auto", padding: "40px 18px" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyYontent: "space-between", marginBottom: 35, justifyContent: "space-between" }}>
+                <div>
+                  <div style={{ fontSize: 28, fontWeight: 900, color: "#F8FAFC", letterSpacing: -0.8 }}>Nanaligo DE 🌲</div>
+                  <div style={{ fontSize: 13, color: "#64748B", marginTop: 4, fontWeight: 700 }}>ปลดล็อกแล้ว {totalUnlocked} / {categories.length} หมวดหมู่</div>
+                </div>
+                <StarDisplay count={stars} />
+              </div>
+
+              {!selected ? (
+                <>
+                  <div style={{ fontSize: 12, color: "#475569", marginBottom: 16, letterSpacing: 1.5, fontWeight: 800, textTransform: "uppercase" }}>เลือกหมวดเรียนรู้ภาษาเยอรมัน</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                    {categories.map(cat => (
+                      <CategoryCard key={cat.id} cat={cat} stars={stars} onSelect={setSelected} />
+                    ))}
+                  </div>
+                  <div style={{ marginTop: 35, background: "#1E293B", border: "2px solid #334155", borderRadius: "24px", padding: "18px", fontSize: 14, color: "#94A3B8", textAlign: "center", lineHeight: 1.7, fontWeight: 600, boxShadow: "0 5px 15px rgba(0,0,0,0.3)" }}>
+                    🌌 สะสมแต้มดวงจิตเพื่อปลดล็อกบทเรียนขั้นถัดไป
+                  </div>
+                </>
+              ) : (
+                <QuizMode
+                  cat={{ ...selected, phrases: selected.phrases }}
+                  onBack={() => setSelected(null)}
+                  onEarnStar={earnStar}
+                />
+              )}
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
