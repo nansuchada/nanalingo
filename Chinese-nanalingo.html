@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Celestial Path: คัมภีร์มหาเวทย์เซียนภาษา ☯️</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body { 
+            margin: 0; 
+            background-color: #F8F9FA; 
+            background-image: linear-gradient(135deg, #FFFFFF 0%, #F3F5F8 100%);
+            font-family: 'Chakra Petch', 'Prompt', sans-serif;
+            color: #2D3748;
+            -webkit-font-smoothing: antialiased;
+        }
+        button, input, select, textarea {
+            font-family: 'Chakra Petch', 'Prompt', sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // ข้อมูลบทวิชาพร้อมการเพิ่ม Pinyin นำหน้าและเน็ตคำอ่านไทยในวงเล็บ
+        const categories = [
+          {
+            id: "greetings",
+            name: "ปฐมบทเบิกเนตรปราณ",
+            desc: "วิชาทักทายขั้นต้น",
+            emoji: "🌸",
+            color: "#FFF5F7",
+            textColor: "#9B2C2C",
+            borderColor: "#FEB2B2",
+            unlocked: true,
+            phrases: [
+              { de: "你好！", en: "สวัสดี!", pinyin: "nǐ hǎo", thHint: "หนี่ ห่าว" },
+              { de: "谢谢！", en: "ขอบคุณ!", pinyin: "xièxie", thHint: "เซี่ยเซี่ย" },
+              { de: "不客气。", en: "ไม่เป็นไร / ยินดีครับ", pinyin: "bú kèqi", thHint: "ปู๋ เค่อฉิ" },
+              { de: "再见！", en: "แล้วพบกันใหม่ / ลาก่อน", pinyin: "zàijiàn", thHint: "ไจ้เจี้ยน" },
+              { de: "对不起。", en: "ขอโทษ", pinyin: "duìbuqǐ", thHint: "ตุ้ยปู๋ฉี่" },
+              { de: "没关系。", en: "ไม่เป็นไร (ให้อภัย)", pinyin: "méi guānxi", thHint: "เหมย กวนซิ" }
+            ],
+          },
+          {
+            id: "introductions",
+            name: "ผูกจิตสานสัมพันธ์",
+            desc: "วิชาแนะนำตัวยุทธภพ",
+            emoji: "☁️",
+            color: "#EBF8FF",
+            textColor: "#2B6CB0",
+            borderColor: "#90CDF4",
+            unlocked: true,
+            phrases: [
+              { de: "我叫...", en: "นามของข้าคือ...", pinyin: "wǒ jiào...", thHint: "หว่อ เจี้ยว..." },
+              { de: "你叫什么名字？", en: "ท่านมีนามว่าอะไร?", pinyin: "nǐ jiào shénme míngzi?", thHint: "หนี่ เจี้ยว เสนหมะ หมิงจิ" },
+              { de: "你从哪里来？", en: "ท่านเดินทางมาจากที่ใด?", pinyin: "nǐ cóng nǎlǐ lái?", thHint: "หนี่ ฉง หน่าหลี่ ไหล" },
+              { de: "我来自泰国。", en: "ข้ามาจากแคว้นไท่กั๋ว (ประเทศไทย)", pinyin: "wǒ láizì tàiguó.", thHint: "หว่อ ไหลจื้อ ไท่กั๋ว" },
+              { de: "很高兴认识你！", en: "ยินดีนักที่ได้พบท่าน!", pinyin: "hěn gāoxìng rènshi nǐ!", thHint: "เหิ่น เกาซิ่ง เริ่นสิ หนี่" }
+            ],
+          },
+          {
+            id: "cafe",
+            name: "โรงเตี๊ยมเมฆาโอสถ",
+            desc: "วิชาเอาตัวรอดร้านอาหาร",
+            emoji: "🍵",
+            color: "#E6FFFA",
+            textColor: "#234E52",
+            borderColor: "#4FD1C5",
+            unlocked: false,
+            starsNeeded: 5,
+            phrases: [
+              { de: "我想点餐。", en: "ข้าอยากสั่งอาหาร/สุรา", pinyin: "wǒ xiǎng diǎnchān.", thHint: "หว่อ เสี่ยง เตี่ยนชาน" },
+              { de: "这个，谢谢。", en: "เอาสิ่งนี้ ขอบคุณมาก", pinyin: "zhège, xièxie.", thHint: "เจ้อเกะ, เซี่ยเซี่ย" },
+              { de: "很好吃！", en: "รสชาติดียิ่งนัก! (อร่อยมาก)", pinyin: "hěn hǎochī!", thHint: "เหิ่น ห่าวชือ" },
+              { de: "服务员，买单！", en: "เสี่ยวเอ้อ! เก็บเงินด้วย!", pinyin: "fúwùyuán, mǎidān!", thHint: "ฝูอู่หยวน, หม่ายตาน" },
+              { de: "不要辣。", en: "ไม่ใส่พริก (ไม่เอาเผ็ด)", pinyin: "bú yào là.", thHint: "ปู๋ เย้า ล่า" }
+            ],
+          },
+          {
+            id: "shopping",
+            name: "ตลาดมืดแลกเปลี่ยนวิเศษ",
+            desc: "วิชาเจรจาต่อรองดวงจิต",
+            emoji: "🛍️",
+            color: "#FFF5F5",
+            textColor: "#9B2C2C",
+            borderColor: "#FEB2B2",
+            unlocked: false,
+            starsNeeded: 10,
+            phrases: [
+              { de: "这个多少钱？", en: "สิ่งนี้ราคาเท่าใด?", pinyin: "zhège duōshao qián?", thHint: "เจ้อเกะ ตัวเส่า เฉียน" },
+              { de: "太贵了！", en: "แพงเกินไปแล้ว!", pinyin: "tài guì le!", thHint: "ไท่ กุ้ย เลอ" },
+              { de: "能便宜一点吗？", en: "ลดราคาลงหน่อยได้หรือไม่?", pinyin: "néng piányi yìdiǎn ma?", thHint: "เหนิง เผียนหยิ อี้เตี่ยน มา" },
+              { de: "我要这个。", en: "ข้าจะรับสิ่งนี้ไป", pinyin: "wǒ yào zhège.", thHint: "หว่อ เย้า เจ้อเกะ" }
+            ],
+          },
+          {
+            id: "directions",
+            name: "เบิกแผนที่ยุทธภพ",
+            desc: "วิชาเคลื่อนย้ายและทิศทาง",
+            emoji: "🗺️",
+            color: "#FAF5FF",
+            textColor: "#553C9A",
+            borderColor: "#D6BCFA",
+            unlocked: false,
+            starsNeeded: 15,
+            phrases: [
+              { de: "...在哪里？", en: "...ตั้งอยู่ที่ใด?", pinyin: "...zài nǎlǐ?", thHint: "...ไจ้ หน่าหลี่" },
+              { de: "洗手间", en: "ห้องสุขา", pinyin: "xǐshǒujiān", thHint: "สี่โส่วเจียน" },
+              { de: "直走", en: "มุ่งหน้าตรงไป", pinyin: "zhí zǒu", thHint: "จื๋อ โจ่ว" },
+              { de: "往左转", en: "เลี้ยวซ้าย", pinyin: "wǎng zuǒ zhuǎn", thHint: "หวัง จั่ว จ่วน" },
+              { de: "我迷路了。", en: "ข้าหลงทางเสียแล้ว", pinyin: "wǒ mílù le.", thHint: "หว่อ มีลู่ เลอ" }
+            ],
+          },
+        ];
+
+        function Confetti({ show }) {
+          if (!show) return null;
+          const pieces = Array.from({ length: 30 }, (_, i) => ({
+            id: i,
+            left: Math.random() * 100,
+            delay: Math.random() * 0.4,
+            size: Math.random() * 6 + 4,
+            color: ["#FF6B6B", "#4DABF7", "#20C997", "#FFD43B", "#9C36B5"][i % 5]
+          }));
+          return (
+            <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 999 }}>
+              {pieces.map(p => (
+                <div key={p.id} style={{
+                  position: "absolute", left: `${p.left}%`, top: "-20px",
+                  width: p.size, height: p.size, borderRadius: "50%", background: p.color,
+                  boxShadow: `0 0 6px ${p.color}88`,
+                  animation: `fall 1.3s ${p.delay}s linear forwards`,
+                }} />
+              ))}
+              <style>{`@keyframes fall { to { transform: translateY(110vh); opacity: 0; } }`}</style>
+            </div>
+          );
+        }
+
+        function StarDisplay({ count }) {
+          return (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#FFFFFF", border: "1.5px solid #CBD5E0", borderRadius: 20, padding: "6px 16px", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+              <span style={{ fontSize: 18 }}>☯️</span>
+              <span style={{ fontWeight: 700, fontSize: 14, color: "#4A5568", letterSpacing: 0.5 }}>ตบะเซียน: {count} ปี</span>
+            </div>
+          );
+        }
+
+        function CategoryCard({ cat, stars, onSelect }) {
+          const unlocked = cat.unlocked || stars >= (cat.starsNeeded || 0);
+          return (
+            <div onClick={() => unlocked && onSelect(cat)} style={{
+              background: unlocked ? cat.color : "#EDF2F7",
+              borderRadius: 16, padding: "24px 16px", cursor: unlocked ? "pointer" : "not-allowed",
+              textAlign: "center", border: `2px solid ${unlocked ? cat.borderColor : "#E2E8F0"}`,
+              transition: "all 0.2s ease-in-out",
+              position: "relative",
+              boxShadow: unlocked ? `0 4px 12px rgba(0,0,0,0.03)` : "none",
+              opacity: unlocked ? 1 : 0.6,
+            }}
+            onMouseEnter={e => unlocked && (e.currentTarget.style.transform = "translateY(-4px)", e.currentTarget.style.boxShadow = `0 8px 20px ${cat.borderColor}`)}
+            onMouseLeave={e => (e.currentTarget.style.transform = "none", e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.03)")}
+            >
+              <div style={{ fontSize: 36, marginBottom: 10 }}>{unlocked ? cat.emoji : "🔒"}</div>
+              <div style={{ fontWeight: 700, fontSize: 16, color: unlocked ? cat.textColor : "#A0AEC0" }}>{cat.name}</div>
+              <div style={{ fontSize: 12, color: unlocked ? cat.textColor : "#718096", opacity: 0.8, marginTop: 4 }}>{unlocked ? cat.desc : `ต้องการตบะ ${cat.starsNeeded} ปี`}</div>
+            </div>
+          );
+        }
+
+        function PhraseCard({ phrase, onCorrect, onNext, flipped, setFlipped, showHint, setShowHint }) {
+          return (
+            <div style={{ textAlign: "center" }}>
+              <div onClick={() => setFlipped(!flipped)} style={{
+                background: flipped ? "#F0FDF4" : "#FFFFFF",
+                border: `2px solid ${flipped ? "#48BB78" : "#ED8936"}`,
+                borderRadius: 20, padding: "40px 20px", cursor: "pointer",
+                minHeight: 180, display: "flex", flexDirection: "column",
+                alignItems: "center", justifyContent: "center",
+                transition: "all 0.25s ease",
+                boxShadow: "0 10px 25px rgba(0,0,0,0.05)",
+              }}>
+                <div style={{ fontSize: 12, color: "#A0AEC0", marginBottom: 14, letterSpacing: 2, fontWeight: 600 }}>
+                  {flipped ? "คำแปลยุทธภพ (ไทย)" : "อักขระเซียน (จีน)"}
+                </div>
+                <div style={{ fontSize: 34, fontWeight: 700, color: flipped ? "#22543D" : "#2D3748", lineHeight: 1.4 }}>
+                  {flipped ? phrase.en : phrase.de}
+                </div>
+                
+                {/* ส่วนแสดงคำใบ้แบบเน้น Pinyin ตัวโตเด่นชัด แล้วตามด้วยภาษาไทยในวงเล็บตามโจทย์ */}
+                {!flipped && showHint && (
+                  <div style={{ marginTop: 18, background: "#EDF2F7", padding: "10px 18px", borderRadius: 16, border: "1px dashed #CBD5E0" }}>
+                    <div style={{ fontSize: 20, color: "#2B6CB0", fontWeight: 700, letterSpacing: 0.5 }}>
+                      🗣️ {phrase.pinyin}
+                    </div>
+                    <div style={{ fontSize: 13, color: "#4A5568", fontWeight: 500, marginTop: 2 }}>
+                      ({phrase.thHint})
+                    </div>
+                  </div>
+                )}
+                
+                {!flipped && (
+                  <div style={{ marginTop: 24, fontSize: 12, color: "#CBD5E0" }}>สัมผัสการ์ดเพื่อเปิดเนตรคำแปล</div>
+                )}
+              </div>
+
+              {!flipped && (
+                <button onClick={(e) => { e.stopPropagation(); setShowHint(!showHint); }} style={{
+                  marginTop: 18, background: "#FFFFFF", border: "1.5px solid #CBD5E0", borderRadius: 20,
+                  padding: "8px 24px", cursor: "pointer", fontSize: 13, color: "#4A5568", fontWeight: 600, transition: "all 0.2s"
+                }}>
+                  {showHint ? "ซ่อนคำอ่านเซียน" : "📜 เปิดเนตรคำอ่านจำลอง (Pinyin)"}
+                </button>
+              )}
+
+              {flipped && (
+                <div style={{ marginTop: 24, display: "flex", gap: 14, justifyContent: "center" }}>
+                  <button onClick={onNext} style={{
+                    background: "#E2E8F0", border: "none", borderRadius: 20,
+                    padding: "12px 28px", cursor: "pointer", fontSize: 14, color: "#4A5568", fontWeight: 600,
+                  }}>ข้ามไป</button>
+                  <button onClick={onCorrect} style={{
+                    background: "#48BB78", border: "none", borderRadius: 20,
+                    padding: "12px 28px", cursor: "pointer", fontSize: 14, color: "#FFFFFF", fontWeight: 600,
+                    boxShadow: "0 4px 12px rgba(72,187,120,0.3)"
+                  }}>☯️ สำเร็จวิชา!</button>
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        function QuizMode({ cat, onBack, onEarnStar }) {
+          const [idx, setIdx] = useState(() => Math.floor(Math.random() * cat.phrases.length));
+          const [choices, setChoices] = useState([]);
+          const [selected, setSelected] = useState(null);
+          const [showConfetti, setShowConfetti] = useState(false);
+          const [mode, setMode] = useState("learn");
+          
+          const [flipped, setFlipped] = useState(false);
+          const [showHint, setShowHint] = useState(false);
+
+          const phrase = cat.phrases[idx];
+
+          const makeChoices = (currentIdx) => {
+            const correct = cat.phrases[currentIdx];
+            const others = cat.phrases.filter((_, i) => i !== currentIdx);
+            const shuffled = others.sort(() => Math.random() - 0.5).slice(0, 3);
+            return [...shuffled, correct].sort(() => Math.random() - 0.5);
+          };
+
+          useEffect(() => {
+            setChoices(makeChoices(idx));
+            setSelected(null);
+          }, [idx]);
+
+          const nextPhrase = () => {
+            const next = (idx + 1) % cat.phrases.length;
+            setIdx(next);
+            setSelected(null);
+            setShowConfetti(false);
+            setFlipped(false);    /* พลิกการ์ดกลับมาโชว์หน้าภาษาจีนเริ่มต้นเสมอ */
+            setShowHint(false);   
+          };
+
+          const handleCorrectLearn = () => {
+            onEarnStar();
+            setShowConfetti(true);
+            // เด้งกลับไปที่ภาษาจีนหน้าถัดไปอัตโนมัติอย่างรวดเร็ว
+            setTimeout(() => {
+              setShowConfetti(false);
+              nextPhrase();
+            }, 400);
+          };
+
+          const handleChoice = (choice) => {
+            if (selected) return;
+            setSelected(choice);
+            if (choice.de === phrase.de) {
+              setShowConfetti(true);
+              onEarnStar();
+              setTimeout(() => setShowConfetti(false), 1500);
+            }
+          };
+
+          return (
+            <div>
+              <Confetti show={showConfetti} />
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+                <button onClick={onBack} style={{ background: "#FFFFFF", border: "1.5px solid #CBD5E0", borderRadius: 20, padding: "6px 16px", cursor: "pointer", fontSize: 13, color: "#4A5568", fontWeight: 600 }}>
+                  ← กลับหน้าแรก
+                </button>
+                <div style={{ fontWeight: 700, fontSize: 16, color: cat.textColor }}>{cat.emoji} {cat.name}</div>
+                <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+                  <button onClick={() => setMode("learn")} style={{ background: mode === "learn" ? "#4A5568" : "#FFFFFF", border: "1.5px solid #CBD5E0", borderRadius: 20, padding: "6px 16px", cursor: "pointer", fontSize: 12, color: mode === "learn" ? "#FFFFFF" : "#4A5568", fontWeight: 600 }}>ม้วนคัมภีร์</button>
+                  <button onClick={() => setMode("quiz")} style={{ background: mode === "quiz" ? "#4A5568" : "#FFFFFF", border: "1.5px solid #CBD5E0", borderRadius: 20, padding: "6px 16px", cursor: "pointer", fontSize: 12, color: mode === "quiz" ? "#FFFFFF" : "#4A5568", fontWeight: 600 }}>ทดสอบตบะ</button>
+                </div>
+              </div>
+
+              {mode === "learn" ? (
+                <PhraseCard 
+                  phrase={phrase} 
+                  onCorrect={handleCorrectLearn} 
+                  onNext={nextPhrase} 
+                  flipped={flipped}
+                  setFlipped={setFlipped}
+                  showHint={showHint}
+                  setShowHint={setShowHint}
+                />
+              ) : (
+                <div>
+                  <div style={{ background: "#FFFFFF", border: "1.5px solid #E2E8F0", borderRadius: 20, padding: "36px 20px", textAlign: "center", marginBottom: 20, boxShadow: "0 4px 12px rgba(0,0,0,0.02)" }}>
+                    <div style={{ fontSize: 12, color: "#A0AEC0", marginBottom: 10, letterSpacing: 1, fontWeight: 600 }}>จงถอดรหัสวจีเต๋าคำนี้เป็นอักขระจีน</div>
+                    <div style={{ fontSize: 26, fontWeight: 700, color: "#2D3748" }}>{phrase.en}</div>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    {choices.map((c, i) => {
+                      let bg = "#FFFFFF", border = "1.5px solid #E2E8F0", color = "#4A5568";
+                      if (selected) {
+                        if (c.de === phrase.de) { bg = "#C6F6D5"; border = "2px solid #48BB78"; color = "#22543D"; }
+                        else if (c.de === selected.de) { bg = "#FED7D7"; border = "2px solid #F56565"; color = "#742A2A"; }
+                      }
+                      return (
+                        <button key={i} onClick={() => handleChoice(c)} style={{
+                          background: bg, border, borderRadius: 12, padding: "16px 10px",
+                          cursor: selected ? "default" : "pointer", fontSize: 19, color, fontWeight: 700,
+                          transition: "all 0.2s", textAlign: "center", boxShadow: "0 2px 4px rgba(0,0,0,0.01)"
+                        }}>
+                          {c.de}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {selected && (
+                    <div style={{ textAlign: "center", marginTop: 24 }}>
+                      {selected.de === phrase.de
+                        ? <div style={{ color: "#38A169", fontWeight: 700, fontSize: 16, marginBottom: 12 }}>ปัญญาแตกฉาน! เพิ่มตบะ 1 ปี ☯️</div>
+                        : <div style={{ color: "#E53E3E", fontWeight: 700, fontSize: 16, marginBottom: 12 }}>พลังปราณแปรปรวน! ลองใหม่อีกครา 💪</div>
+                      }
+                      <button onClick={nextPhrase} style={{ background: "#4A5568", border: "none", borderRadius: 20, padding: "12px 32px", cursor: "pointer", fontSize: 14, color: "#FFFFFF", fontWeight: 600, boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}>
+                        ตำราถัดไป →
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        function App() {
+          const [stars, setStars] = useState(0);
+          const [selected, setSelected] = useState(null);
+
+          const earnStar = () => {
+            setStars(s => s + 1);
+          };
+
+          const totalUnlocked = categories.filter(c => c.unlocked || stars >= (c.starsNeeded || 0)).length;
+
+          return (
+            <div style={{ maxWidth: 520, margin: "0 auto", padding: "32px 16px" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 32 }}>
+                <div>
+                  <div style={{ fontSize: 26, fontWeight: 800, color: "#2D3748", letterSpacing: -0.5 }}>The Celestial Path ☯️</div>
+                  <div style={{ fontSize: 13, color: "#718096", marginTop: 4, fontWeight: 600 }}>ปลดล็อกตำราแล้ว {totalUnlocked} จาก {categories.length} บทวิชา</div>
+                </div>
+                <StarDisplay count={stars} />
+              </div>
+
+              {!selected ? (
+                <>
+                  <div style={{ fontSize: 12, color: "#A0AEC0", marginBottom: 14, letterSpacing: 1, fontWeight: 700 }}>เลือกวิชาที่ต้องการบำเพ็ญเพียร</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                    {categories.map(cat => (
+                      <CategoryCard key={cat.id} cat={cat} stars={stars} onSelect={setSelected} />
+                    ))}
+                  </div>
+                  <div style={{ marginTop: 32, background: "#FFFFFF", border: "1.5px solid #E2E8F0", borderRadius: 16, padding: "16px", fontSize: 13, color: "#4A5568", textAlign: "center", lineHeight: 1.6, fontWeight: 600, boxShadow: "0 4px 12px rgba(0,0,0,0.02)" }}>
+                    📜 จงตั้งจิตศึกษาอักขระและวจีเต๋าเพื่อสะสมปีตบะเซียน — ด่านวิชาขั้นสูงจะเปิดออกเมื่อตบะแก่กล้า!
+                  </div>
+                </>
+              ) : (
+                <QuizMode
+                  cat={{ ...selected, phrases: selected.phrases }}
+                  onBack={() => setSelected(null)}
+                  onEarnStar={earnStar}
+                />
+              )}
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
